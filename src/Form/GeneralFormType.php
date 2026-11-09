@@ -31,7 +31,6 @@ class GeneralFormType extends TranslatorAwareType
             ])
             ->add('secret_key', TextType::class, [
                 'label' => $this->trans('Secret key', 'Modules.Awturnstile.Admin'),
-                'help' => $this->trans('Cloudflare test keys can be used on local environments.', 'Modules.Awturnstile.Admin'),
                 'required' => false,
                 'constraints' => [
                     new Assert\Length(['max' => 255]),
