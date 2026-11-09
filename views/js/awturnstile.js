@@ -17,7 +17,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
 
-// AwModuleBase - Front Office Scripts
+// AwTurnstile - Front Office Scripts
 
 document.addEventListener('DOMContentLoaded', function() {
     // Add your custom JavaScript here
