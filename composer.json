@@ -1,6 +1,6 @@
 {
   "name": "axelweb/awturnstile",
-  "description": "PrestaShop module base template for development",
+  "description": "Cloudflare Turnstile protection for the PrestaShop newsletter form",
   "type": "prestashop-module",
   "license": "AFL-3.0",
   "authors": [

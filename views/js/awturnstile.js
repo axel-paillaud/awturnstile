@@ -1,24 +1,27 @@
 /**
- * Copyright since 2007 PrestaShop SA and Contributors
- * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License version 3.0
- * that is bundled with this package in the file LICENSE.md.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/AFL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
  * @author    Axelweb <contact@axelweb.fr>
- * @copyright 2007-2024 Axelweb
+ * @copyright 2026 Axelweb
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
 
-// AwTurnstile - Front Office Scripts
+// A Turnstile token is single-use: reset the widget after each AJAX
+// submission of ps_emailsubscription so a new attempt gets a fresh token.
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof window.jQuery === 'undefined') {
+    return;
+  }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Add your custom JavaScript here
+  window.jQuery(document).ajaxComplete(function (event, xhr, settings) {
+    if (
+      typeof window.turnstile === 'undefined'
+      || typeof window.psemailsubscription_subscription === 'undefined'
+      || settings.url !== window.psemailsubscription_subscription
+    ) {
+      return;
+    }
+
+    document.querySelectorAll('.cf-turnstile').forEach(function (widget) {
+      window.turnstile.reset(widget);
+    });
+  });
 });

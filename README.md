@@ -1,184 +1,42 @@
 # AwTurnstile
 
-A modern boilerplate for PrestaShop 8 / 9 module development, by [Axelweb](https://axelweb.fr).
+Protects the `ps_emailsubscription` newsletter form with [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/), by [Axelweb](https://axelweb.fr).
 
 ## Requirements
 
-- PrestaShop 8.0+
-- PHP 8.1+
+- PrestaShop 8.0+ with `ps_emailsubscription`
+- PHP 8.1+ with the cURL extension
 - Composer
 
-## Getting started
+## Installation
 
-1. Copy this module and rename it (folder, main PHP file, class name, namespace, service IDs, route names).
-2. Run `composer install` in the module directory.
-3. Install the module from the PrestaShop back-office.
+1. Run `composer install` in the module directory.
+2. Install the module from the back-office.
+3. Configure it: fill in the site key and the secret key.
 
----
+The module stays inactive while a key is missing. Disable the module to turn Turnstile off.
 
-## Features
+## How it works
 
-### Back-office tab
-
-A menu tab is automatically registered in the back-office on install via the `$tabs` property in the main class.
-
-```php
-public $tabs = [
-    [
-        'name'              => ['en' => 'Module Base', 'fr' => 'Module Base'],
-        'class_name'        => 'AwTurnstile',
-        'parent_class_name' => 'AdminParentModulesSf',
-        'wording'           => 'Module Base',
-        'wording_domain'    => 'Modules.Awturnstile.Admin',
-    ],
-];
-```
-
-- Change `name` to set the label shown in the menu.
-- Change `parent_class_name` to move the tab to a different menu section (e.g. `AdminCatalog`, `AdminOrders`).
-- Remove the `$tabs` property entirely if you do not need a menu entry.
-
-The tab links to the Symfony route `awturnstile_index` (`/awturnstile/index`), handled by `AwTurnstileController`.
-
----
-
-### Configuration page
-
-The module redirects `getContent()` to a Symfony-based configuration page at `/awturnstile/configuration`.
-
-The stack follows PrestaShop's modern form pattern:
-
-| File | Role |
+| Hook | Role |
 |---|---|
-| `src/Form/GeneralFormType.php` | Symfony form definition (fields) |
-| `src/Form/GeneralDataConfiguration.php` | Read/write values to `ps_configuration` |
-| `src/Form/GeneralFormDataProvider.php` | Glue between form and data configuration |
-| `src/Controller/AdminConfigurationController.php` | Renders and handles the form |
-| `views/templates/admin/form.html.twig` | Twig template for the form |
+| `actionFrontControllerSetMedia` | Loads the Turnstile API and `views/js/awturnstile.js` |
+| `displayNewsletterRegistration` | Renders the widget inside the newsletter form |
+| `actionNewsletterRegistrationBefore` | Verifies the token with the siteverify API, sets `hookError` on failure |
 
-A sample field `AWTURNSTILE_SAMPLE_CONFIG` is included as a starting point. Add, rename, or remove fields in `GeneralFormType` and `GeneralDataConfiguration`.
+- Only subscriptions are checked, unsubscriptions are not.
+- A network error towards Cloudflare rejects the subscription and is logged in the PrestaShop logs.
+- The theme template must call `{hook h='displayNewsletterRegistration'}` inside the `<form>`.
+- Turnstile tokens are single-use: `awturnstile.js` resets the widget after each AJAX submission.
 
----
+## Test keys
 
-### SQL tables
+For local environments ([Cloudflare docs](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)):
 
-SQL scripts run automatically on install and uninstall:
-
-- **`sql/install.php`** — table creation
-- **`sql/uninstall.php`** — table deletion
-
-Both files contain a commented-out example. Uncomment and adapt it for your own tables:
-
-```php
-$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'awturnstile_example` (
-    `id_awturnstile_example` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(255) NOT NULL,
-    `value` TEXT DEFAULT NULL,
-    `active` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
-    `date_add` DATETIME NOT NULL,
-    `date_upd` DATETIME NOT NULL,
-    PRIMARY KEY (`id_awturnstile_example`),
-    KEY `active` (`active`)
-) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;';
-```
-
-If your module does not need a dedicated table, leave the arrays empty — the scripts will simply return `true`.
-
----
-
-### Front-office assets
-
-The hook `actionFrontControllerSetMedia` loads a CSS and a JS file on every front-office page:
-
-- `views/css/awturnstile.css`
-- `views/js/awturnstile.js`
-
-Remove the hook registration in `install()` and delete `hookActionFrontControllerSetMedia()` if no front-office assets are needed.
-
----
-
-### Back-office assets
-
-Admin CSS and JS are loaded directly from the Twig template (`views/templates/admin/form.html.twig`) via the `stylesheets` and `javascripts` blocks:
-
-- `views/css/admin/form.css`
-- `views/js/admin/form.js`
-
----
-
-### Symfony services (DI)
-
-Services are declared in `config/services.yml`. The namespace prefix used throughout is `axelweb.awturnstile.*`. Update all service IDs when renaming the module.
-
----
-
-### Symfony routes
-
-Routes are defined in `config/routes.yml`:
-
-| Route name | Path | Controller |
+| | Always passes | Always fails |
 |---|---|---|
-| `awturnstile_index` | `/awturnstile/index` | `AwTurnstileController::index` |
-| `awturnstile_form_configuration` | `/awturnstile/configuration` | `AdminConfigurationController::index` |
-
-The `_legacy_controller` and `_legacy_link` keys are required for the tab system to work correctly.
-
----
-
-### Translation
-
-The module uses PrestaShop's new translation system (`isUsingNewTranslationSystem()` returns `true`). The translation domain is `Modules.Awturnstile.Admin`.
-
----
-
-### Symfony cache
-
-The Symfony cache is cleared automatically after a successful install (`Tools::clearSf2Cache()`) to avoid route-not-found errors.
-
----
-
-## Project structure
-
-```
-awturnstile/
-├── awturnstile.php          # Main module class
-├── composer.json
-├── config/
-│   ├── routes.yml            # Symfony routes
-│   └── services.yml          # Symfony DI services
-├── sql/
-│   ├── install.php           # Table creation
-│   └── uninstall.php         # Table deletion
-├── src/
-│   ├── Controller/
-│   │   ├── AdminConfigurationController.php
-│   │   └── AwTurnstileController.php
-│   └── Form/
-│       ├── GeneralDataConfiguration.php
-│       ├── GeneralFormDataProvider.php
-│       └── GeneralFormType.php
-├── vendor/                   # Composer dependencies
-└── views/
-    ├── css/
-    │   ├── admin/form.css
-    │   └── awturnstile.css
-    ├── js/
-    │   ├── admin/form.js
-    │   └── awturnstile.js
-    └── templates/
-        └── admin/
-            ├── awturnstile.html.twig
-            └── form.html.twig
-```
-
----
-
-## TODO
-
-- [X] Replace all header stamp
-- [X] Remove smartpack reference
-
----
+| Site key | `1x00000000000000000000AA` | `2x00000000000000000000AB` |
+| Secret key | `1x0000000000000000000000000000000AA` | `2x0000000000000000000000000000000AA` |
 
 ## License
 

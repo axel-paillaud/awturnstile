@@ -19,15 +19,24 @@ class GeneralFormType extends TranslatorAwareType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('sample_config', TextType::class, [
-                'label' => $this->trans('Sample configuration', 'Modules.Awturnstile.Admin'),
-                'help' => $this->trans('Example configuration field', 'Modules.Awturnstile.Admin'),
+            ->add('site_key', TextType::class, [
+                'label' => $this->trans('Site key', 'Modules.Awturnstile.Admin'),
                 'required' => false,
                 'constraints' => [
                     new Assert\Length(['max' => 255]),
                 ],
                 'attr' => [
-                    'placeholder' => 'Example value',
+                    'autocomplete' => 'off',
+                ],
+            ])
+            ->add('secret_key', TextType::class, [
+                'label' => $this->trans('Secret key', 'Modules.Awturnstile.Admin'),
+                'help' => $this->trans('Cloudflare test keys can be used on local environments.', 'Modules.Awturnstile.Admin'),
+                'required' => false,
+                'constraints' => [
+                    new Assert\Length(['max' => 255]),
+                ],
+                'attr' => [
                     'autocomplete' => 'off',
                 ],
             ]);

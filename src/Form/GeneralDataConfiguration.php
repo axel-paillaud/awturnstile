@@ -13,11 +13,12 @@ use PrestaShop\PrestaShop\Core\Configuration\DataConfigurationInterface;
 use PrestaShop\PrestaShop\Core\ConfigurationInterface;
 
 /**
- * Configuration is used to save data to configuration table and retrieve from it.
+ * Reads and writes the module settings in the configuration table.
  */
 final class GeneralDataConfiguration implements DataConfigurationInterface
 {
-    public const AWTURNSTILE_SAMPLE_CONFIG = 'AWTURNSTILE_SAMPLE_CONFIG';
+    public const AWTURNSTILE_SITE_KEY = 'AWTURNSTILE_SITE_KEY';
+    public const AWTURNSTILE_SECRET_KEY = 'AWTURNSTILE_SECRET_KEY';
 
     /**
      * @var ConfigurationInterface
@@ -32,46 +33,29 @@ final class GeneralDataConfiguration implements DataConfigurationInterface
     public function getConfiguration(): array
     {
         return [
-            'sample_config' => (string) $this->configuration->get(static::AWTURNSTILE_SAMPLE_CONFIG),
+            'site_key' => (string) $this->configuration->get(static::AWTURNSTILE_SITE_KEY),
+            'secret_key' => (string) $this->configuration->get(static::AWTURNSTILE_SECRET_KEY),
         ];
     }
 
     public function updateConfiguration(array $configuration): array
     {
-        $errors = [];
-
-        // Quick normalisation
-        $sampleConfig = isset($configuration['sample_config']) ? trim((string) $configuration['sample_config']) : '';
-
-        if (!$this->validateConfiguration(['sample_config' => $sampleConfig])) {
-            $errors[] = 'Invalid configuration payload.';
-
-            return $errors;
+        if (!$this->validateConfiguration($configuration)) {
+            return ['Invalid configuration payload.'];
         }
 
-        // Validation (exemple)
-        if ($sampleConfig !== '' && \strlen($sampleConfig) > 255) {
-            $errors[] = 'Sample configuration is too long.';
-        }
+        $siteKey = trim((string) $configuration['site_key']);
+        $secretKey = trim((string) $configuration['secret_key']);
 
-        if (!empty($errors)) {
-            return $errors;
-        }
+        $this->configuration->set(static::AWTURNSTILE_SITE_KEY, $siteKey);
+        $this->configuration->set(static::AWTURNSTILE_SECRET_KEY, $secretKey);
 
-        // Persist
-        $this->configuration->set(static::AWTURNSTILE_SAMPLE_CONFIG, $sampleConfig);
-
-        // empty = ok
-        return $errors;
+        return [];
     }
 
-    /**
-     * Ensure the parameters passed are valid.
-     *
-     * @return bool Returns true if no exception are thrown
-     */
     public function validateConfiguration(array $configuration): bool
     {
-        return isset($configuration['sample_config']);
+        return \array_key_exists('site_key', $configuration)
+            && \array_key_exists('secret_key', $configuration);
     }
 }

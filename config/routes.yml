@@ -1,17 +1,7 @@
-awturnstile_index:
-  path: /awturnstile/index
-  methods: [GET]
-  defaults:
-    _controller: 'Axelweb\AwTurnstile\Controller\AwTurnstileController::index'
-    # Needed to work with tab system
-    _legacy_controller: AwTurnstile
-    _legacy_link: AwTurnstile
-
 awturnstile_form_configuration:
   path: /awturnstile/configuration
   methods: [GET, POST]
   defaults:
     _controller: 'Axelweb\AwTurnstile\Controller\AdminConfigurationController::index'
-    # Needed to work with tab system
     _legacy_controller: AdminAwTurnstile
     _legacy_link: AdminAwTurnstile

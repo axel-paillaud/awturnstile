@@ -14,8 +14,6 @@ use PrestaShop\PrestaShop\Core\Form\FormDataProviderInterface;
 
 /**
  * Provides form data to the Symfony form from the configuration storage.
- * Keys expected/provided:
- *  - sample_config : string
  */
 class GeneralFormDataProvider implements FormDataProviderInterface
 {
@@ -30,7 +28,7 @@ class GeneralFormDataProvider implements FormDataProviderInterface
     }
 
     /**
-     * @return array{sample_config:string}
+     * @return array{site_key:string, secret_key:string}
      */
     public function getData(): array
     {
@@ -38,7 +36,7 @@ class GeneralFormDataProvider implements FormDataProviderInterface
     }
 
     /**
-     * @param array{sample_config?:string} $data
+     * @param array{site_key?:string, secret_key?:string} $data
      *
      * @return array<string> List of error messages (empty if success)
      */
